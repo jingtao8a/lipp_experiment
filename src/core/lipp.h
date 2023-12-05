@@ -187,7 +187,7 @@ public:
         while (!s.empty()) {
             Node* node = s.top(); s.pop();
 
-            printf("Node(%p, a = %lf, b = %lf, num_items = %d)", node, node->model.a, node->model.b, node->num_items);
+            printf("Node(%p, a = %lf, b = %Lf, num_items = %d)", node, node->model.a, node->model.b, node->num_items);
             printf("[");
             int first = 1;
             for (int i = 0; i < node->num_items; i ++) {
