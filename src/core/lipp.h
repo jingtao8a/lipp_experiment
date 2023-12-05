@@ -80,7 +80,8 @@ public:
         : BUILD_LR_REMAIN(BUILD_LR_REMAIN), QUIET(QUIET) {
         {
             std::vector<Node*> nodes;
-            for (int _ = 0; _ < 1e7; _ ++) {
+//            for (int _ = 0; _ < 1e7; _ ++) {
+            for (int _ = 0; _ < 100; _ ++) {
                 Node* node = build_tree_two(T(0), P(), T(1), P());
                 nodes.push_back(node);
             }
@@ -306,6 +307,10 @@ private:
     };
     struct Node
     {
+        //build_size == build_num
+        //size == element_num
+        //num_insert_to_data == conflict_num
+        //num_inserts == size - build_size
         int is_two; // is special node for only two keys
         int build_size; // tree size (include sub nodes) when node created
         int size; // current tree size (include sub nodes)
@@ -601,12 +606,13 @@ private:
                 // So we added a small number (1e-6) to U_T.
                 // In fact, it has only a negligible impact of the performance.
                 {
+                    //D == T  size == N
                     const int L = size * static_cast<int>(BUILD_GAP_CNT + 1);
                     int i = 0;
                     int D = 1;
                     RT_ASSERT(D <= size-1-D);
                     double Ut = (static_cast<long double>(keys[size - 1 - D]) - static_cast<long double>(keys[D])) /
-                                (static_cast<double>(L - 2)) + 1e-6;
+                                (static_cast<double>(L - 2)) + 1e-6;// a samll number (1e-6)
                     while (i < size - 1 - D) {
                         while (i + D < size && keys[i + D] - keys[i] >= Ut) {
                             i ++;
@@ -680,11 +686,11 @@ private:
                             break;
                         }
                     }
-                    if (next == offset + 1) {
+                    if (next == offset + 1) {//表示位置item_i没有发生conflict
                         BITMAP_CLEAR(node->none_bitmap, item_i);
                         node->items[item_i].comp.data.key = keys[offset];
                         node->items[item_i].comp.data.value = values[offset];
-                    } else {
+                    } else {//begin + offset -> begin + next的位置的key发生了conflict
                         // ASSERT(next - offset <= (size+2) / 3);
                         BITMAP_CLEAR(node->none_bitmap, item_i);
                         BITMAP_SET(node->child_bitmap, item_i);
@@ -813,7 +819,7 @@ private:
                 node->items[pos].comp.data.key = key;
                 node->items[pos].comp.data.value = value;
                 break;
-            } else if (BITMAP_GET(node->child_bitmap, pos) == 0) {
+            } else if (BITMAP_GET(node->child_bitmap, pos) == 0) {//发生conflict
                 BITMAP_SET(node->child_bitmap, pos);
                 node->items[pos].comp.child = build_tree_two(key, value, node->items[pos].comp.data.key, node->items[pos].comp.data.value);
                 insert_to_data = 1;
