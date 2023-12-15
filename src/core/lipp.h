@@ -535,11 +535,11 @@ private:
                             break;
                         }
                     }
-                    if (next == offset + 1) {
+                    if (next == offset + 1) {//item_i位置无冲突
                         BITMAP_CLEAR(node->none_bitmap, item_i);
                         node->items[item_i].comp.data.key = keys[offset];
                         node->items[item_i].comp.data.value = values[offset];
-                    } else {
+                    } else {//item_i位置发生冲突（冲突的key为begin+offset -> begin+next）
                         // ASSERT(next - offset <= (size+2) / 3);
                         BITMAP_CLEAR(node->none_bitmap, item_i);
                         BITMAP_SET(node->child_bitmap, item_i);
@@ -626,7 +626,7 @@ private:
                         Ut = (static_cast<long double>(keys[size - 1 - D]) - static_cast<long double>(keys[D])) /
                              (static_cast<double>(L - 2)) + 1e-6;
                     }
-                    if (D * 3 <= size) {
+                    if (D * 3 <= size) {//FMCD算法计算的冲突度 <= size / 3,表示成功
                         stats.fmcd_success_times ++;
 
                         node->model.a = 1.0 / Ut;
