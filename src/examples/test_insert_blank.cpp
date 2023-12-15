@@ -9,11 +9,12 @@
 #include <unordered_set>
 #include <algorithm>
 #include <queue>
+#include <chrono>
 #include "linear_regression_model.h"
 
 typedef  int32_t KEY_TYPE;
 constexpr KEY_TYPE DATA_MIN = 0, DATA_MAX = 1000000;
-constexpr int32_t DATA_SIZE = 64;
+constexpr int32_t DATA_SIZE = 64000;
 constexpr int32_t ARRAY_SIZE = 2 * DATA_SIZE;
 
 std::vector<KEY_TYPE> generate_data() {
@@ -54,6 +55,8 @@ struct NodeGreater {
 void test_new_method() {
     //生成数据
     auto array = generate_data();
+    auto start_time = std::chrono::high_resolution_clock::now();
+
     std::vector<int> position_diff(DATA_SIZE - 1, 1), position(DATA_SIZE, 0);
     std::vector<double> key_diff;
     key_diff.reserve(DATA_SIZE - 1);
@@ -139,10 +142,16 @@ void test_new_method() {
             conflicts += i - 1;
         }
     }
+    auto end_time = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(end_time - start_time); // 计算程序运行时间，单位为毫秒
+
+    std::cout << "DATA_SIZE: " << DATA_SIZE << std::endl;
+    std::cout << "execute time(ns): " << duration.count() << std::endl;
     std::cout << "conflicts: " << conflicts << std::endl;
 }
 
 int main() {
+    std::cout << "test_new_method" << std::endl;
     test_new_method();
     return 0;
 }

@@ -12,6 +12,7 @@
 #include <algorithm>
 #include <cmath>
 #include <iostream>
+#include <chrono>
 #include "linear_regression_model.h"
 
 // runtime assert
@@ -30,8 +31,8 @@ inline int compute_gap_count(int size) {
 }
 
 typedef  int32_t KEY_TYPE;
-constexpr KEY_TYPE DATA_MIN = 0, DATA_MAX = 1000000;
-constexpr int32_t DATA_SIZE = 64;
+constexpr KEY_TYPE DATA_MIN = 0, DATA_MAX = 1000000000;
+constexpr int32_t DATA_SIZE = 64000;
 
 
 std::vector<KEY_TYPE> generate_data() {
@@ -55,6 +56,7 @@ std::vector<KEY_TYPE> generate_data() {
 
 void testFMCD() {
     auto keys = generate_data();
+    auto start_time = std::chrono::high_resolution_clock::now();
     // FMCD method
     // Here the implementation is a little different with Algorithm 1 in our paper.
     // In Algorithm 1, U_T should be (keys[size-1-D] - keys[D]) / (L - 2).
@@ -135,10 +137,16 @@ void testFMCD() {
             conflicts += i - 1;
         }
     }
+    auto end_time = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(end_time - start_time); // 计算程序运行时间，单位为毫秒
+
+    std::cout << "DATA_SIZE: " << DATA_SIZE << std::endl;
+    std::cout << "execute time(ns): " << duration.count() << std::endl;
     std::cout << "conflicts: " << conflicts << std::endl;
 }
 
 int main() {
+    std::cout << "testFMCD" << std::endl;
     testFMCD();
     return 0;
 }
