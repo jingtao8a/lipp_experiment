@@ -11,3 +11,9 @@ add_executable(example_bulk_load src/examples/example_bulk_load.cpp)
 
 add_executable(test_insert_black src/examples/test_insert_blank.cpp)
 add_executable(testFMCD src/examples/testFMCD.cpp)
+add_executable(test_remove_key src/examples/test_remove_key.cpp)
+add_executable(test_customheap src/examples/test_customheap.cpp)
+
+
+add_executable(test1 src/test/test1.cpp)
+add_executable(test2 src/test/test2.cpp)
