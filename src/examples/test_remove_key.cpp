@@ -10,10 +10,11 @@
 #include <random>
 #include "linear_regression_model.h"
 #include "CustomHeap.h"
+#include <bitset>
 
 typedef  int32_t KEY_TYPE;
 constexpr KEY_TYPE DATA_MIN = 0, DATA_MAX = 1000000;
-constexpr int32_t DATA_SIZE = 64000;
+constexpr int32_t DATA_SIZE = 5;
 constexpr int32_t ARRAY_SIZE = 3 * DATA_SIZE;
 
 std::vector<KEY_TYPE> generate_data() {
@@ -46,6 +47,10 @@ struct LevelTwoNode {
     LevelOneNode * right_child;
     LevelTwoNode * prev;
     LevelTwoNode * next;
+    LevelTwoNode(double diff_, LevelOneNode* left_child_, LevelOneNode* right_child_,
+                 LevelTwoNode* prev_, LevelTwoNode* next_):
+                diff(diff_), left_child(left_child_), right_child(right_child_), prev(prev_), next(next_) {}
+    LevelTwoNode(const LevelTwoNode& ref) = default;
 };
 
 struct LevelTwoNodePointerEqual {
@@ -92,8 +97,10 @@ bool isInMaxHeap(LevelTwoNode * node, double avg_key_diff) {
 
 void test_new_method() {
     std::vector<KEY_TYPE> array = generate_data();
+    std::bitset<DATA_SIZE> bitmap;//为1表示删除
     std::vector<LevelOneNode *> levelOneNodeArray;
     std::vector<LevelTwoNode *> levelTwoNodeArray;
+    std::vector<LevelTwoNode *> newLevelTwoNodeArray;
     CustomHeap<LevelTwoNode *, LevelTwoNodePointerEqual, LevelTwoNodePointerGreater> min_heap;
     CustomHeap<LevelTwoNode *, LevelTwoNodePointerEqual, LevelTwoNodePointerLess> max_heap;
     int remove_key_count = 0;
@@ -110,8 +117,8 @@ void test_new_method() {
             NULL,
     });
     int levelTwoNodeArrayIndex = 0;
-    for (int i = 1; i < levelOneNodeArray.size(); +i) {
-        auto newTwoNode = new LevelTwoNode{
+    for (int i = 1; i < levelOneNodeArray.size(); ++i) {
+        auto newTwoNode = new LevelTwoNode {
                 (levelOneNodeArray[i]->diff + levelOneNodeArray[i + 1]->diff) / 2,
                 levelOneNodeArray[i],
                 levelOneNodeArray[i + 1],
@@ -139,7 +146,8 @@ void test_new_method() {
         auto nextLevelTwoNode = levelTwoNode->next;
         if (prevLevelTwoNode == NULL) {//最左边的levelTwoNode
             levelTwoNode->right_child->diff = levelTwoNode->right_child->diff + levelTwoNode->left_child->diff;
-            levelTwoNode->right_child->left_pos = 0;//remove position 1
+            bitmap[levelTwoNode->right_child->left_pos] = 1;// remove position
+            levelTwoNode->right_child->left_pos = levelTwoNode->left_child->left_pos;
             remove_key_count++;
 
             //remove nextLevelTwoNode
@@ -148,8 +156,12 @@ void test_new_method() {
             } else {
                 min_heap.erase(nextLevelTwoNode);
             }
-            nextLevelTwoNode->diff = (nextLevelTwoNode->left_child->diff + nextLevelTwoNode->right_child->diff) / 2;
-
+            auto newNextLevelTwoNode = new LevelTwoNode(*nextLevelTwoNode);
+            newNextLevelTwoNode->diff = (newNextLevelTwoNode->left_child->diff + newNextLevelTwoNode->right_child->diff) / 2;
+            newLevelTwoNodeArray.push_back(newNextLevelTwoNode);
+            if (newNextLevelTwoNode->next) {
+                newNextLevelTwoNode->next->prev = newNextLevelTwoNode;
+            }
             avg_key_diff = total_diff / (DATA_SIZE - 1 - remove_key_count);//avg_key_diff 增加  slope 降低
             //更新max_heap和min_heap
             while (min_heap.size()) {
@@ -161,19 +173,123 @@ void test_new_method() {
                 max_heap.push(node);
             }
 
-            //insert nextLevelTwoNode
-            if (nextLevelTwoNode->diff - avg_key_diff > std::numeric_limits<double>::epsilon()) {// p->diff > avg_key_diff <=> slope < avg_slope
-                min_heap.push(nextLevelTwoNode);
+            //insert newNextLevelTwoNode
+            if (newNextLevelTwoNode->diff - avg_key_diff > std::numeric_limits<double>::epsilon()) {// p->diff > avg_key_diff <=> slope < avg_slope
+                min_heap.push(newNextLevelTwoNode);
             } else { // p->diff <= avg_key_diff <=> slope >= avg_slope
-                max_heap.push(nextLevelTwoNode);
+                max_heap.push(newNextLevelTwoNode);
             }
+
+            //delete levelTwoNode
+            newNextLevelTwoNode->prev = NULL;
         } else if (nextLevelTwoNode == NULL) {//最右边的levelTwoNode
+            levelTwoNode->left_child->diff = levelTwoNode->left_child->diff + levelTwoNode->right_child->diff;
+            bitmap[levelTwoNode->left_child->right_pos] = 1; //remove position
+            levelTwoNode->left_child->right_pos = levelTwoNode->right_child->right_pos;
+            remove_key_count++;
 
+            //remove prevLevelTwoNode
+            if (isInMaxHeap(prevLevelTwoNode, avg_key_diff)) {
+                max_heap.erase(prevLevelTwoNode);
+            } else {
+                min_heap.erase(prevLevelTwoNode);
+            }
+            auto newPrevLevelTwoNode = new LevelTwoNode(*prevLevelTwoNode);
+            newPrevLevelTwoNode->diff = (newPrevLevelTwoNode->left_child->diff + newPrevLevelTwoNode->right_child->diff) / 2;
+            newLevelTwoNodeArray.push_back(newPrevLevelTwoNode);
+            if (newPrevLevelTwoNode->prev) {
+                newPrevLevelTwoNode->prev->next = newPrevLevelTwoNode;
+            }
+
+            avg_key_diff = total_diff / (DATA_SIZE - 1 - remove_key_count);//avg_key_diff 增加 slope降低
+            //更新max_heap和min_heap
+            while (min_heap.size()) {
+                auto node = min_heap.top();
+                if (node->diff - avg_key_diff > std::numeric_limits<double>::epsilon()) {
+                    break;
+                }
+                min_heap.pop();
+                max_heap.push(node);
+            }
+
+            //insert newPrevLevelTwoNode
+            if (newPrevLevelTwoNode->diff - avg_key_diff > std::numeric_limits<double>::epsilon()) {// p->diff > avg_key_diff <=> slope < avg_slope
+                min_heap.push(newPrevLevelTwoNode);
+            } else { // p->diff <= avg_key_diff <=> slope >= avg_slope
+                max_heap.push(newPrevLevelTwoNode);
+            }
+
+            //delete levelTwoNode
+            newPrevLevelTwoNode->next = NULL;
         } else {
+            levelTwoNode->left_child->diff = levelTwoNode->left_child->diff + levelTwoNode->right_child->diff;
+            bitmap[levelTwoNode->left_child->right_pos] = 1;//remove position
+            levelTwoNode->left_child->right_pos = levelTwoNode->right_child->right_pos;
+            remove_key_count++;
 
+            //remove nextLevelTwoNode
+            if (isInMaxHeap(nextLevelTwoNode, avg_key_diff)) {
+                max_heap.erase(nextLevelTwoNode);
+            } else {
+                min_heap.erase(nextLevelTwoNode);
+            }
+            auto newNextLevelTwoNode = new LevelTwoNode(*nextLevelTwoNode);
+            newNextLevelTwoNode->left_child = levelTwoNode->left_child;
+
+            //remove prevLevelTwoNode
+            if (isInMaxHeap(prevLevelTwoNode, avg_key_diff)) {
+                max_heap.erase(prevLevelTwoNode);
+            } else {
+                min_heap.erase(prevLevelTwoNode);
+            }
+            auto newPrevLevelTwoNode = new LevelTwoNode(*prevLevelTwoNode);
+
+            newPrevLevelTwoNode->diff = (newPrevLevelTwoNode->left_child->diff + newPrevLevelTwoNode->right_child->diff) / 2;
+            newNextLevelTwoNode->diff = (newNextLevelTwoNode->left_child->diff + newNextLevelTwoNode->right_child->diff) / 2;
+            if (newPrevLevelTwoNode->prev) {
+                newPrevLevelTwoNode->prev->next = newPrevLevelTwoNode;
+            }
+            if (newNextLevelTwoNode->next) {
+                newNextLevelTwoNode->next->prev = newNextLevelTwoNode;
+            }
+
+            avg_key_diff = total_diff / (DATA_SIZE - 1 - remove_key_count);//avg_key_diff 增加 slope降低
+            //更新max_heap和min_heap
+            while (min_heap.size()) {
+                auto node = min_heap.top();
+                if (node->diff - avg_key_diff > std::numeric_limits<double>::epsilon()) {
+                    break;
+                }
+                min_heap.pop();
+                max_heap.push(node);
+            }
+
+            //insert newPrevLevelTwoNode
+            if (newPrevLevelTwoNode->diff - avg_key_diff > std::numeric_limits<double>::epsilon()) {// p->diff > avg_key_diff <=> slope < avg_slope
+                min_heap.push(newPrevLevelTwoNode);
+            } else { // p->diff <= avg_key_diff <=> slope >= avg_slope
+                max_heap.push(newPrevLevelTwoNode);
+            }
+
+            //insert nextLevelTwoNode
+            if (newNextLevelTwoNode->diff - avg_key_diff > std::numeric_limits<double>::epsilon()) {
+                min_heap.push(newNextLevelTwoNode);
+            } else {
+                max_heap.push(newNextLevelTwoNode);
+            }
+
+            //delete levelTwoNode
+            newPrevLevelTwoNode->next = newNextLevelTwoNode;
+            newNextLevelTwoNode->prev = newPrevLevelTwoNode;
         }
-
     }
+    auto sum = 0;
+    for (auto i = 0; i < bitmap.size(); ++i) {
+        if (bitmap[i] == 1) {
+            sum++;
+        }
+    }
+    std::cout << remove_key_count << " " << sum;
 
     //释放堆内存
     for (auto p : levelOneNodeArray) {
@@ -181,6 +297,10 @@ void test_new_method() {
     }
 
     for (auto p : levelTwoNodeArray) {
+        delete p;
+    }
+
+    for (auto p : newLevelTwoNodeArray) {
         delete p;
     }
 }
