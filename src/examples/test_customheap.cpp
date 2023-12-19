@@ -10,7 +10,7 @@ struct Node{
 
 struct NodePointerEqual{
     bool operator()(Node* lp, Node* rp) {
-        return lp->key_ == rp->key_;
+        return lp == rp;
     }
 };
 
@@ -35,7 +35,8 @@ void testCustomHeap() {
     heap.erase(node_pointer_array[0]);
     heap.erase(node_pointer_array[1]);
     heap.erase(node_pointer_array[4]);
-
+    node_pointer_array.push_back(new Node{123242});
+    heap.push(node_pointer_array.back());
     while (heap.size()) {
         auto i = heap.top();
         heap.pop();
