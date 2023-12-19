@@ -11,7 +11,7 @@
 
 typedef  int32_t KEY_TYPE;
 constexpr KEY_TYPE DATA_MIN = 0, DATA_MAX = 1000000;
-constexpr int32_t DATA_SIZE = 64000;
+constexpr int32_t DATA_SIZE = 6400;
 constexpr int32_t ARRAY_SIZE = 3 * DATA_SIZE;
 
 std::vector<KEY_TYPE> generate_data() {

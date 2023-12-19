@@ -14,8 +14,8 @@
 
 typedef  int32_t KEY_TYPE;
 constexpr KEY_TYPE DATA_MIN = 0, DATA_MAX = 1000000;
-constexpr int32_t DATA_SIZE = 640000;
-//constexpr int32_t ARRAY_SIZE = 3 * DATA_SIZE;
+constexpr int32_t DATA_SIZE = 6400;
+constexpr int32_t ARRAY_SIZE = 3 * DATA_SIZE;
 
 std::vector<KEY_TYPE> generate_data() {
     std::random_device seed;//硬件生成随机数种子
@@ -95,6 +95,7 @@ bool isInMaxHeap(LevelTwoNode * node, double avg_key_diff) {
 void test_new_method() {
     std::vector<KEY_TYPE> array = generate_data();
 //    std::vector<KEY_TYPE> array = {1, 4, 10, 20, 40};
+    auto start_time = std::chrono::high_resolution_clock::now();
     std::bitset<DATA_SIZE> bitmap;//为1表示删除
     std::vector<LevelOneNode *> levelOneNodeArray;
     std::vector<LevelTwoNode *> levelTwoNodeArray;
@@ -290,8 +291,43 @@ void test_new_method() {
             sum++;
         }
     }
-    std::cout << remove_key_count << " " << sum;
 
+    LinearModel<KEY_TYPE> linearModel;
+    LinearModelBuilder<KEY_TYPE> linearModelBuilder(&linearModel);
+
+    auto index = 0;
+    for (int i = 0; i < DATA_SIZE; ++i) {
+        if (bitmap[i] == 0) {
+            linearModelBuilder.add(array[i], index);
+            index++;
+        }
+    }
+    linearModelBuilder.build();
+
+    std::vector<int32_t> count(ARRAY_SIZE, 0);
+    int32_t conflicts = 0;
+    for (int i = 0; i < array.size(); ++i) {
+        double v = linearModel.predict_double(array[i]);
+        if (v > std::numeric_limits<int>::max() / 2) {
+            count[ARRAY_SIZE - 1]++;
+        } else if (v < 0) {
+            count[0]++;
+        } else {
+            count[std::min(ARRAY_SIZE - 1, static_cast<int>(v))]++;
+        }
+    }
+    for (auto i : count) {
+        if (i > 1) { // 发生冲突
+            conflicts += i - 1;
+        }
+    }
+
+    auto end_time = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(end_time - start_time); // 计算程序运行时间，单位为毫秒
+
+    std::cout << "DATA_SIZE: " << DATA_SIZE << std::endl;
+    std::cout << "execute time(ns): " << duration.count() << std::endl;
+    std::cout << "conflicts: " << conflicts << std::endl;
     //释放堆内存
     for (auto p : levelOneNodeArray) {
         delete p;
