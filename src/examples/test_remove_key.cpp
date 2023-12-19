@@ -14,8 +14,8 @@
 
 typedef  int32_t KEY_TYPE;
 constexpr KEY_TYPE DATA_MIN = 0, DATA_MAX = 1000000;
-constexpr int32_t DATA_SIZE = 5;
-constexpr int32_t ARRAY_SIZE = 3 * DATA_SIZE;
+constexpr int32_t DATA_SIZE = 640000;
+//constexpr int32_t ARRAY_SIZE = 3 * DATA_SIZE;
 
 std::vector<KEY_TYPE> generate_data() {
     std::random_device seed;//硬件生成随机数种子
@@ -55,10 +55,7 @@ struct LevelTwoNode {
 
 struct LevelTwoNodePointerEqual {
     bool operator()(LevelTwoNode* lp, LevelTwoNode* rp) {
-        if (lp->diff - rp->diff > std::numeric_limits<double>::epsilon() && lp->diff - rp->diff < -std::numeric_limits<double>::epsilon()) {
-            return false;
-        }
-        return (lp->left_child == rp->left_child) && (lp->right_child == rp->right_child);
+        return lp == rp;
     }
 };
 
@@ -71,7 +68,7 @@ struct LevelTwoNodePointerLess {
             return true;
         }
 
-        return lp->left_child < rp->right_child;
+        return lp < rp;
     }
 };
 
@@ -84,7 +81,7 @@ struct LevelTwoNodePointerGreater {
             return false;
         }
 
-        return lp->left_child > rp->right_child;
+        return lp > rp;
     }
 };
 
@@ -97,6 +94,7 @@ bool isInMaxHeap(LevelTwoNode * node, double avg_key_diff) {
 
 void test_new_method() {
     std::vector<KEY_TYPE> array = generate_data();
+//    std::vector<KEY_TYPE> array = {1, 4, 10, 20, 40};
     std::bitset<DATA_SIZE> bitmap;//为1表示删除
     std::vector<LevelOneNode *> levelOneNodeArray;
     std::vector<LevelTwoNode *> levelTwoNodeArray;
@@ -117,7 +115,7 @@ void test_new_method() {
             NULL,
     });
     int levelTwoNodeArrayIndex = 0;
-    for (int i = 1; i < levelOneNodeArray.size(); ++i) {
+    for (int i = 1; i < levelOneNodeArray.size() - 1; ++i) {
         auto newTwoNode = new LevelTwoNode {
                 (levelOneNodeArray[i]->diff + levelOneNodeArray[i + 1]->diff) / 2,
                 levelOneNodeArray[i],
@@ -139,12 +137,14 @@ void test_new_method() {
         }
     }
 
-    while (remove_key_count < array.size() / 2) { // plan to remove half of the keys
+    while (remove_key_count < array.size() / 2 && max_heap.size() > 0) { // plan to remove half of the keys
         auto levelTwoNode = max_heap.top();
         max_heap.pop();
         auto prevLevelTwoNode = levelTwoNode->prev;
         auto nextLevelTwoNode = levelTwoNode->next;
-        if (prevLevelTwoNode == NULL) {//最左边的levelTwoNode
+        if (prevLevelTwoNode == NULL && nextLevelTwoNode == NULL) {
+            break;
+        } else if(prevLevelTwoNode == NULL) {//最左边的levelTwoNode
             levelTwoNode->right_child->diff = levelTwoNode->right_child->diff + levelTwoNode->left_child->diff;
             bitmap[levelTwoNode->right_child->left_pos] = 1;// remove position
             levelTwoNode->right_child->left_pos = levelTwoNode->left_child->left_pos;
@@ -283,6 +283,7 @@ void test_new_method() {
             newNextLevelTwoNode->prev = newPrevLevelTwoNode;
         }
     }
+
     auto sum = 0;
     for (auto i = 0; i < bitmap.size(); ++i) {
         if (bitmap[i] == 1) {
