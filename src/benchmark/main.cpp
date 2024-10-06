@@ -71,7 +71,8 @@ int main(int argc, char* argv[]) {
   // Create DILI and bulk load
   LIPP<KEY_TYPE, PAYLOAD_TYPE> index;
   index.bulk_load(values, init_num_keys);
-
+  std::cout << "print root depth ......" << std::endl;
+  index.print_depth();
   // Run workload
   int i = init_num_keys;
   long long cumulative_inserts = 0;
