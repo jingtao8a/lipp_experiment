@@ -71,7 +71,8 @@ int main(int argc, char* argv[]) {
   // Create DILI and bulk load
   LIPP<KEY_TYPE, PAYLOAD_TYPE> index;
   index.bulk_load(values, init_num_keys);
-
+  std::cout << "print root depth ......" << std::endl;
+  index.print_root_depth();
   // Run workload
   int i = init_num_keys;
   long long cumulative_inserts = 0;
@@ -105,7 +106,7 @@ int main(int argc, char* argv[]) {
       auto lookups_start_time = std::chrono::high_resolution_clock::now();
       for (int j = 0; j < num_lookups_per_batch; j++) {
         KEY_TYPE key = lookup_keys[j];
-        PAYLOAD_TYPE payload = index.at(key);
+        PAYLOAD_TYPE payload = index.search(key);
         if (payload != -1) {
           sum += payload;
         }
