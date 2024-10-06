@@ -73,6 +73,8 @@ int main(int argc, char* argv[]) {
   index.bulk_load(values, init_num_keys);
   std::cout << "print root depth ......" << std::endl;
   index.print_root_depth();
+  std::cout << "print segmentNodes depth ......" << std::endl;
+  index.print_segmentNodes_depth();
   // Run workload
   int i = init_num_keys;
   long long cumulative_inserts = 0;

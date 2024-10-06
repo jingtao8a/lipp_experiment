@@ -215,6 +215,11 @@ public:
     void print_root_depth() const {
         print_depth(root);
     }
+    void print_segmentNodes_depth() {
+        for (auto node : segmentNodes) {
+            print_depth(node);
+        }
+    }
     void print_depth(Node* node) const {
         std::stack<Node*> s;
         std::stack<int> d;
@@ -473,7 +478,7 @@ private:
             data[i] = _keys[i];
         }
         std::cout << "use ClosureAlgorithm to partition data ......" << std::endl;
-        dili::ClosureAlgorithm<T, 8> closureAlgorithm(data);
+        dili::ClosureAlgorithm<T, 4> closureAlgorithm(data);
         auto segments = closureAlgorithm.getSegments();
         auto n = segments.size() - 1;//最后一个segment是哨兵
 
