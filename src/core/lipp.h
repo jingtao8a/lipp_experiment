@@ -10,6 +10,7 @@
 #include <vector>
 #include <cstring>
 #include <sstream>
+#include <iostream>
 #include "../partition_algorithm/closure_algorithm.h"
 
 typedef uint8_t bitmap_t;
@@ -213,14 +214,23 @@ public:
         }
     }
     void print_root_depth() const {
-        print_depth(root);
+        auto res = print_depth(root);
+        printf("max_depth = %d, avg_depth = %.2lf\n", res.first, res.second);
     }
     void print_segmentNodes_depth() {
+        auto res = std::make_pair<int, double>(0, 0.0);
         for (auto node : segmentNodes) {
-            print_depth(node);
+            auto tmp = print_depth(node);
+            if (tmp.first > res.first) {
+                res.first = tmp.first;
+            }
+            res.second += tmp.second;
         }
+        res.second /= segmentNodes.size();
+        printf("max_depth = %d, avg_depth = %.2lf\n", res.first, res.second);
     }
-    void print_depth(Node* node) const {
+private:
+    std::pair<int, double> print_depth(Node* node) const {
         std::stack<Node*> s;
         std::stack<int> d;
         s.push(node);
@@ -242,8 +252,7 @@ public:
                 }
             }
         }
-
-        printf("max_depth = %d, avg_depth = %.2lf\n", max_depth, double(sum_depth) / double(sum_nodes));
+        return {max_depth, double(sum_depth) / double(sum_nodes)};
     }
     void verify(Node* node) const {
         std::stack<Node*> s;
@@ -263,6 +272,7 @@ public:
             RT_ASSERT(sum_size == node->size);
         }
     }
+public:
     void print_stats() const {
         printf("======== Stats ===========\n");
         if (USE_FMCD) {
@@ -281,6 +291,7 @@ public:
         }
         return sum;
     }
+private:
     size_t index_size(Node* root, bool total=false, bool ignore_child=true) const {
         std::stack<Node*> s;
         s.push(root);
@@ -822,7 +833,7 @@ private:
                 T* keys = _keys + begin;
                 P* values = _values + begin;
                 const int size = end - begin;
-                const int BUILD_GAP_CNT = 200;//compute_gap_count(size);
+                const int BUILD_GAP_CNT = compute_gap_count(size);
 
                 node->is_two = 0;
                 node->build_size = size;
