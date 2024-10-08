@@ -479,7 +479,7 @@ private:
         std::cout << "construct ts ......" << std::endl;
         T min = _keys[0];
         T max = _keys[_size - 1];
-        ts::Builder<T> tsb(min, max, /*spline_max_error=*/8);
+        ts::Builder<T> tsb(min, max, /*spline_max_error=*/128);
         for (auto i = 0; i < _size; ++i) {
             tsb.AddKey(_keys[i]);
         }
