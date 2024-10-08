@@ -11,6 +11,10 @@ bool load_binary_data(T data[], int length, const std::string& file_path) {
   if (!is.is_open()) {
     return false;
   }
+//  // Read size.
+//  uint64_t size;
+//  is.read(reinterpret_cast<char*>(&size), sizeof(uint64_t));
+
   is.read(reinterpret_cast<char*>(data), std::streamsize(length * sizeof(T)));
   is.close();
   return true;

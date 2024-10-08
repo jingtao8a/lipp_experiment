@@ -17,8 +17,8 @@
 #include "utils.h"
 #include "../core/lipp.h"
 // Modify these if running your own workload
-#define KEY_TYPE int64_t
-#define PAYLOAD_TYPE int64_t
+#define KEY_TYPE uint64_t
+#define PAYLOAD_TYPE uint64_t
 
 /*
  * Required flags:
@@ -71,8 +71,6 @@ int main(int argc, char* argv[]) {
   // Create DILI and bulk load
   LIPP<KEY_TYPE, PAYLOAD_TYPE> index;
   index.bulk_load(values, init_num_keys);
-  std::cout << "print root depth ......" << std::endl;
-  index.print_root_depth();
   std::cout << "print segmentNodes depth ......" << std::endl;
   index.print_segmentNodes_depth();
   // Run workload
