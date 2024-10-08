@@ -17,8 +17,8 @@
 #include "utils.h"
 #include "../core/lipp.h"
 // Modify these if running your own workload
-#define KEY_TYPE int64_t
-#define PAYLOAD_TYPE int64_t
+#define KEY_TYPE uint64_t
+#define PAYLOAD_TYPE uint64_t
 
 /*
  * Required flags:
