@@ -73,13 +73,13 @@ public:
     // Narrow search range using CHT.
     const auto range = cht_.GetSearchBound(key);
 
-//    // Linear search?
-//    if (range.end - range.begin < 32) {
-//      // Do linear search over narrowed range.
-//      uint32_t current = range.begin;
-//      while (spline_points_[current].x < key) ++current;
-//      return current;
-//    }
+    // Linear search?
+    if (range.end - range.begin < 32) {
+      // Do linear search over narrowed range.
+      uint32_t current = range.begin;
+      while (current < spline_points_.size() && spline_points_[current].x < key) ++current;
+      return current;
+    }
 
     // Do binary search over narrowed range.
     const auto lb =
