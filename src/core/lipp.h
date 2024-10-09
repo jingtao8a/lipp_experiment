@@ -489,7 +489,7 @@ private:
             data[i] = _keys[i];
         }
         std::cout << "use ClosureAlgorithm to partition data ......" << std::endl;
-        dili::ClosureAlgorithm<T, 4> closureAlgorithm(data);
+        dili::ClosureAlgorithm<T, 32> closureAlgorithm(data);
         auto segments = closureAlgorithm.getSegments();
         auto n = segments.size() - 1;//最后一个segment是哨兵
 
@@ -503,7 +503,14 @@ private:
         for (int i = 0; i < n; ++i) {
             auto nextIter = std::lower_bound(beginIter, endIter, segments[i + 1].key);
             auto _s = nextIter - beginIter;
-            segmentNodes[i] = build_tree_bulk(_keys + index, _values + index, _s);
+            if (_s <= 1) {
+                segmentNodes[i] = build_tree_none();
+                if (_s == 1) {
+                    insert_tree(segmentNodes[i], _keys[index], _values[index]);
+                }
+            } else {
+                segmentNodes[i] = build_tree_bulk(_keys + index, _values + index, _s);
+            }
             index += _s;
             beginIter = nextIter;
         }
@@ -833,7 +840,7 @@ private:
                 T* keys = _keys + begin;
                 P* values = _values + begin;
                 const int size = end - begin;
-                const int BUILD_GAP_CNT = compute_gap_count(size);
+                const int BUILD_GAP_CNT = 30;//compute_gap_count(size);
 
                 node->is_two = 0;
                 node->build_size = size;
