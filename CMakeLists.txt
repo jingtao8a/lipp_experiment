@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.25)
+cmake_minimum_required(VERSION 3.22)
 project(lipp)
 
 #add_compile_options(--std=c++11 -O3 -Wall)
